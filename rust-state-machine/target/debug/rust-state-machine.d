@@ -1,0 +1,1 @@
+C:\my-projects\rust-build-a-blockchain\rust-state-machine\target\debug\rust-state-machine.exe: C:\my-projects\rust-build-a-blockchain\rust-state-machine\src\balances.rs C:\my-projects\rust-build-a-blockchain\rust-state-machine\src\main.rs
