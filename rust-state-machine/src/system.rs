@@ -19,6 +19,23 @@ impl Pallet {
             nonce: BTreeMap::new(),
         }
 	}
+
+    /// Get the current block number.
+    pub fn block_number(&self) -> u32 {
+        self.block_number
+    }
+
+	// This function can be used to increment the block number.
+	// Increases the block number by one.
+	pub fn inc_block_number(&mut self) {
+		self.block_number += 1;
+	}
+
+	// Increment the nonce of an account. This helps us keep track of how many transactions each
+	// account has made.
+	pub fn inc_nonce(&mut self, who: &String) {
+		self.nonce.entry(who.clone()).and_modify(|e| *e += 1).or_insert(1);
+	}
 }
 
 #[cfg(test)]
@@ -27,8 +44,18 @@ mod tests {
 
     #[test]
     fn init_system() {
-        let system = Pallet::new();
-        assert_eq!(system.block_number, 0);
-        assert_eq!(system.nonce.len(), 0);
+        let mut system = Pallet::new();
+        
+        // Increment the current block number.
+        system.inc_block_number();
+
+        // Increment the nonce of `alice`.
+        system.inc_nonce(&"alice".to_string());
+
+        // Check the block number is what we expect.
+        assert_eq!(system.block_number(), 1);
+
+        // Check the nonce of `alice` is what we expect.
+        assert_eq!(system.nonce.get(&"alice".to_string()), Some(&1));
     }
 }
