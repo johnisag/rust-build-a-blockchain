@@ -1,9 +1,13 @@
 use std::collections::BTreeMap;
 
+type  AccountId = String;
+type Balance = u128;
+
 // Pallet struct acting as the state and entry point for this module
+#[derive(Debug)]
 pub struct Pallet {
     // A simple storage mapping from accounts (`String`) to their balances (`u128`).
-    balances: BTreeMap<String, u128>,
+    balances: BTreeMap<AccountId, Balance>,
 }
 
 impl Pallet {
@@ -15,20 +19,20 @@ impl Pallet {
     }
 
 	/// Set the balance of an account `who` to some `amount`.
-    pub fn set_balance(&mut self, who: &String, amount: u128) {
+    pub fn set_balance(&mut self, who: &AccountId, amount: Balance) {
         self.balances.insert(who.clone(), amount);
     }
 
 	/// Get the balance of an account `who`.
 	/// If the account has no stored balance, we return zero.
-    pub fn balance(&self, who: &String) -> u128 {
+    pub fn balance(&self, who: &AccountId) -> Balance {
         *self.balances.get(who).unwrap_or(&0)
     }
 
     /// Transfer `amount` from one account to another.
 	/// This function verifies that `from` has at least `amount` balance to transfer,
 	/// and that no mathematical overflows occur.
-    pub fn transfer(&mut self, from: String, to: String, amount: u128) -> Result<(), &'static str> {
+    pub fn transfer(&mut self, from: AccountId, to: AccountId, amount: Balance) -> Result<(), &'static str> {
         // get the balance of caller account
         let from_balance = self.balance(&from);
 

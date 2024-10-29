@@ -3,6 +3,7 @@ mod system;
 
 // This is our main Runtime.
 // It accumulates all of the different pallets we want to use.
+#[derive(Debug)]
 pub struct Runtime {
     system: system::Pallet,
     balances: balances::Pallet,
@@ -49,5 +50,6 @@ fn main() {
     print!("Alice's balance: {}\n", runtime.balances.balance(&alice));
     print!("Bob's balance: {}\n", runtime.balances.balance(&bob));
     print!("Carlie's balance: {}\n", runtime.balances.balance(&carlie));
-}
 
+    println!("{:#?}", runtime);
+}
