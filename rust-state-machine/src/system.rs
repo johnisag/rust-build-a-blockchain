@@ -1,13 +1,10 @@
 use std::collections::BTreeMap;
-
-type AccountId = String;
-type BlockNumber = u32;
-type Nonce = u32;
+use num::traits::{Zero, One};
 
 /// This is the System Pallet.
 /// It handles low level state needed for your blockchain.
 #[derive(Debug)]
-pub struct Pallet {
+pub struct Pallet<AccountId, BlockNumber, Nonce> {
 	/// The current block number.
     block_number: BlockNumber,
 
@@ -15,11 +12,16 @@ pub struct Pallet {
     nonce: BTreeMap<AccountId, Nonce>,
 }
 
-impl Pallet {
+impl<AccountId, BlockNumber, Nonce> Pallet<AccountId, BlockNumber, Nonce>
+where
+    AccountId: Ord + Clone,
+    BlockNumber: Zero + One + Copy + std::ops::AddAssign,
+    Nonce: One + Copy + std::ops::AddAssign,
+    {
 	/// Create a new instance of the System Pallet.
 	pub fn new() -> Self {
         Self {
-            block_number: 0,
+            block_number: Zero::zero(),
             nonce: BTreeMap::new(),
         }
 	}
@@ -32,13 +34,13 @@ impl Pallet {
 	// This function can be used to increment the block number.
 	// Increases the block number by one.
 	pub fn inc_block_number(&mut self) {
-		self.block_number += 1;
+		self.block_number += One::one();
 	}
 
 	// Increment the nonce of an account. This helps us keep track of how many transactions each
 	// account has made.
 	pub fn inc_nonce(&mut self, who: &AccountId) {
-		self.nonce.entry(who.clone()).and_modify(|e| *e += 1).or_insert(1);
+		self.nonce.entry(who.clone()).and_modify(|e| *e += One::one()).or_insert(One::one());
 	}
 }
 
@@ -48,7 +50,7 @@ mod tests {
 
     #[test]
     fn init_system() {
-        let mut system = Pallet::new();
+        let mut system = Pallet::<String, u32, u32>::new();
         
         // Increment the current block number.
         system.inc_block_number();

@@ -1,12 +1,20 @@
 mod balances;
 mod system;
 
+mod types {
+    pub type AccountId = String;
+    pub type Balance = u128;
+    pub type BlockNumber = u32;
+    pub type Nonce = u32;
+}
+
+
 // This is our main Runtime.
 // It accumulates all of the different pallets we want to use.
 #[derive(Debug)]
 pub struct Runtime {
-    system: system::Pallet,
-    balances: balances::Pallet,
+    system: system::Pallet<types::AccountId, types::BlockNumber, types::Nonce>,
+    balances: balances::Pallet<types::AccountId, types::Balance>,
 }
 
 impl Runtime {
@@ -27,7 +35,7 @@ fn main() {
     let mut runtime = Runtime::new();
 
 	//Set the balance of `alice` to 100, allowing us to execute other transactions. 
-    runtime.balances.set_balance(&"alice".to_string(), 100);
+    runtime.balances.set_balance(&alice, 100);
 
 	// start emulating a block
 	runtime.system.inc_block_number();
@@ -35,7 +43,7 @@ fn main() {
     assert_eq!(runtime.system.block_number(), 1);
 
 	// first transaction
-    runtime.system.inc_nonce(&"alice".to_string());
+    runtime.system.inc_nonce(&alice);
     let _res = runtime.balances
     .transfer(alice.clone(), bob.clone(), 30)
     .map_err(|e| println!("{}", e));
