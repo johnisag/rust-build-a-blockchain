@@ -1,23 +1,29 @@
 use std::collections::BTreeMap;
 use num::traits::{Zero, One};
 
+/// Combine all generic types and their trait bounds into a single `pub trait Config`.
+/// When you are done, your `Pallet` can simply be defined with `Pallet<T: Config>`.
+pub trait Config {
+    /// The type of account identifier.
+    type AccountId: Ord + Clone;
+    /// The type of block number.
+    type BlockNumber: Zero + One + Copy + std::ops::AddAssign;
+    /// The type of nonce.
+    type Nonce: One + Copy + std::ops::AddAssign;
+}
+
 /// This is the System Pallet.
 /// It handles low level state needed for your blockchain.
 #[derive(Debug)]
-pub struct Pallet<AccountId, BlockNumber, Nonce> {
+pub struct Pallet<T: Config> {
 	/// The current block number.
-    block_number: BlockNumber,
+    block_number: T::BlockNumber,
 
 	/// A map from an account to their nonce.
-    nonce: BTreeMap<AccountId, Nonce>,
+    nonce: BTreeMap<T::AccountId, T::Nonce>,
 }
 
-impl<AccountId, BlockNumber, Nonce> Pallet<AccountId, BlockNumber, Nonce>
-where
-    AccountId: Ord + Clone,
-    BlockNumber: Zero + One + Copy + std::ops::AddAssign,
-    Nonce: One + Copy + std::ops::AddAssign,
-    {
+impl<T: Config> Pallet<T> {
 	/// Create a new instance of the System Pallet.
 	pub fn new() -> Self {
         Self {
@@ -27,7 +33,7 @@ where
 	}
 
     /// Get the current block number.
-    pub fn block_number(&self) -> BlockNumber {
+    pub fn block_number(&self) -> T::BlockNumber {
         self.block_number
     }
 
@@ -39,7 +45,7 @@ where
 
 	// Increment the nonce of an account. This helps us keep track of how many transactions each
 	// account has made.
-	pub fn inc_nonce(&mut self, who: &AccountId) {
+	pub fn inc_nonce(&mut self, who: &T::AccountId) {
 		self.nonce.entry(who.clone()).and_modify(|e| *e += One::one()).or_insert(One::one());
 	}
 }
@@ -48,9 +54,17 @@ where
 mod tests {
     use super::*;
 
+    struct TestConfig {}
+
+    impl super::Config for TestConfig {
+        type AccountId = String;
+        type BlockNumber = u32;
+        type Nonce = u32;
+    }
+
     #[test]
     fn init_system() {
-        let mut system = Pallet::<String, u32, u32>::new();
+        let mut system = Pallet::<TestConfig>::new();
         
         // Increment the current block number.
         system.inc_block_number();
