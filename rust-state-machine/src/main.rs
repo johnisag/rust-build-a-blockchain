@@ -1,11 +1,22 @@
 mod balances;
 mod system;
 
+// These are the concrete types we will use in our simple state machine.
+// Modules are configured for these types directly, and they satisfy all of our
+// trait requirements.
 mod types {
     pub type AccountId = String;
     pub type Balance = u128;
     pub type BlockNumber = u32;
     pub type Nonce = u32;
+}
+
+// This is our main Runtime.
+// It accumulates all of the different pallets we want to use.
+#[derive(Debug)]
+pub struct Runtime {
+    system: system::Pallet<Self>,
+    balances: balances::Pallet<Self>,
 }
 
 impl system::Config for Runtime {
@@ -14,12 +25,11 @@ impl system::Config for Runtime {
 	type Nonce = types::Nonce;
 }
 
-// This is our main Runtime.
-// It accumulates all of the different pallets we want to use.
-#[derive(Debug)]
-pub struct Runtime {
-    system: system::Pallet<Self>,
-    balances: balances::Pallet<types::AccountId, types::Balance>,
+// Implement the `balances::Config` trait you created on your `Runtime`.
+// Use `Self` to satisfy the generic parameter required for `balances::Pallet`.
+impl balances::Config for Runtime {
+    type AccountId = types::AccountId;
+    type Balance = types::Balance;
 }
 
 impl Runtime {
