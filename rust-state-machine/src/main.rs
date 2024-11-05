@@ -28,7 +28,6 @@ impl system::Config for Runtime {
 // Implement the `balances::Config` trait you created on your `Runtime`.
 // Use `Self` to satisfy the generic parameter required for `balances::Pallet`.
 impl balances::Config for Runtime {
-    type AccountId = types::AccountId;
     type Balance = types::Balance;
 }
 

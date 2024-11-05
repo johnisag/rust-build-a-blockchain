@@ -3,9 +3,7 @@ use num::traits::{CheckedAdd, CheckedSub, Zero};
 
 // Combine all generic types and their trait bounds into a single `pub trait Config`.
 //When you are done, your `Pallet` can simply be defined with `Pallet<T: Config>`.
-pub trait Config {
-    /// The type of account identifier.
-    type AccountId: Ord + Clone;
+pub trait Config: crate::system::Config {
     /// The type of balance.
     type Balance: Zero + CheckedSub + CheckedAdd + Copy;
 }
@@ -68,10 +66,16 @@ impl<T: Config> Pallet<T>{
 mod tests {
     pub struct TestConfig {}
 
-    impl super::Config for TestConfig {
+    impl crate::system::Config for TestConfig {
         type AccountId = String;
+        type BlockNumber = u32;
+        type Nonce = u32;
+    }
+
+    impl super::Config for TestConfig {
         type Balance = u128;
     }
+
 
     #[test]
     fn init_balances() {
