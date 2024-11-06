@@ -39,7 +39,7 @@ impl<T: Config> Pallet<T>{
     /// Transfer `amount` from one account to another.
 	/// This function verifies that `from` has at least `amount` balance to transfer,
 	/// and that no mathematical overflows occur.
-    pub fn transfer(&mut self, from: T::AccountId, to: T::AccountId, amount: T::Balance) -> Result<(), &'static str> {
+    pub fn transfer(&mut self, from: T::AccountId, to: T::AccountId, amount: T::Balance) -> crate::support::DispatchResult {
         // get the balance of caller account
         let from_balance = self.balance(&from);
 
