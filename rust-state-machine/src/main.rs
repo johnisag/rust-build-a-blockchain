@@ -1,6 +1,9 @@
 mod balances;
+mod proof_of_existence;
 mod system;
 mod support;
+
+use balances::Call;
 
 use crate::support::Dispatch;
 
@@ -22,7 +25,7 @@ mod types {
 // These are all the calls which are exposed to the world.
 // Note that it is just an accumulation of the calls exposed by each module.
 pub enum RuntimeCall {
-    BalanacesTransfer { to: types::AccountId, amount: types::Balance },
+    Balances(balances::Call<Runtime>),
 }
 
 // This is our main Runtime.
@@ -70,8 +73,6 @@ impl Runtime {
             self.system.inc_nonce(&caller);
 
             // Dispatch the extrinsic using the `caller` and the `call` contained in the extrinsic.
-            // Handle errors from `dispatch` same as we did for individual calls: printing any
-            // error and capturing the result.
             let _ = self.dispatch(caller, call).map_err(|e| 
                 eprintln!(
                     "Extrinsic Error\n\tBlock Number: {}\n\tExtrinsic Number: {}\n\tError: {}",
@@ -85,7 +86,7 @@ impl Runtime {
 	}
 }
 
-//also ADD THIS CODE TO YOUR main.rs file:
+
 impl crate::support::Dispatch for Runtime {
 	type Caller = <Runtime as system::Config>::AccountId;
 	type Call = RuntimeCall;
@@ -97,8 +98,8 @@ impl crate::support::Dispatch for Runtime {
 		runtime_call: Self::Call,
 	) -> support::DispatchResult {
 		match runtime_call {
-            RuntimeCall::BalanacesTransfer { to, amount } => {
-                self.balances.transfer(caller, to, amount)?;
+            RuntimeCall::Balances(call) => {
+                self.balances.dispatch(caller, call)?;
             }
         }
 
@@ -107,27 +108,28 @@ impl crate::support::Dispatch for Runtime {
 }
 
 fn main() {
+	// Create a new instance of the Runtime.
+	// It will instantiate with it all the modules it uses.
 	let mut runtime = Runtime::new();
 	let alice = "alice".to_string();
 	let bob = "bob".to_string();
-	let charlie = "charlie".to_string();
 
+	// Initialize the system with some initial balance.
 	runtime.balances.set_balance(&alice, 100);
 
-	// start emulating a block
-	runtime.system.inc_block_number();
-	assert_eq!(runtime.system.block_number(), 1);
+    // Create a new block with the extrinsics.
+    let block_1 = types::Block {
+        header: support::Header { block_number: 1 },
+        extrinsics: vec![
+            support::Extrinsic {
+                caller: alice.clone(),
+                call: RuntimeCall::Balances(Call::Transfer { to: bob.clone(), amount: 20 }),
+            }
+        ],
+    };
 
-	// first transaction
-	runtime.system.inc_nonce(&alice);
-	let _res = runtime
-		.balances
-		.transfer(alice.clone(), bob, 30)
-		.map_err(|e| eprintln!("{}", e));
+    runtime.execute_block(block_1).expect("invalid block");
 
-	// second transaction
-	runtime.system.inc_nonce(&alice);
-	let _res = runtime.balances.transfer(alice, charlie, 20).map_err(|e| eprintln!("{}", e));
-
+	// Simply print the debug format of our runtime state.
 	println!("{:#?}", runtime);
 }
