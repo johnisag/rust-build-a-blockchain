@@ -20,12 +20,14 @@ mod types {
     pub type Extrinsic = support::Extrinsic<AccountId, crate::RuntimeCall>;
     pub type Header = support::Header<BlockNumber>;
     pub type Block = support::Block<Header, Extrinsic>;
+    pub type Content = String;
 }
 
 // These are all the calls which are exposed to the world.
 // Note that it is just an accumulation of the calls exposed by each module.
 pub enum RuntimeCall {
     Balances(balances::Call<Runtime>),
+    ProofOfExistence(proof_of_existence::Call<Runtime>),
 }
 
 // This is our main Runtime.
@@ -34,6 +36,7 @@ pub enum RuntimeCall {
 pub struct Runtime {
     system: system::Pallet<Self>,
     balances: balances::Pallet<Self>,
+    proof_of_existence: proof_of_existence::Pallet<Self>,
 }
 
 impl system::Config for Runtime {
@@ -48,11 +51,18 @@ impl balances::Config for Runtime {
     type Balance = types::Balance;
 }
 
+// Implement the `proof_of_existence::Config` trait you created on your `Runtime`.
+// Use `Self` to satisfy the generic parameter required for `proof_of_existence::Pallet`.
+impl proof_of_existence::Config for Runtime {
+    type Content = types::Content;
+}
+
 impl Runtime {
     pub fn new() -> Self {
         Self {
             system: system::Pallet::new(),
             balances: balances::Pallet::new(),
+            proof_of_existence: proof_of_existence::Pallet::new(),
         }
     }
 
@@ -100,7 +110,10 @@ impl crate::support::Dispatch for Runtime {
 		match runtime_call {
             RuntimeCall::Balances(call) => {
                 self.balances.dispatch(caller, call)?;
-            }
+            },
+            RuntimeCall::ProofOfExistence(call) => {
+                self.proof_of_existence.dispatch(caller, call)?;
+            },
         }
 
         Ok(())
@@ -128,7 +141,20 @@ fn main() {
         ],
     };
 
+    // create a new block with the extrinsics for the proof of existence module.
+    let block_2 = types::Block {
+        header: support::Header { block_number: 2 },
+        extrinsics: vec![
+            support::Extrinsic {
+                caller: alice.clone(),
+                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "Hello, World!".to_string() }),
+            },
+        ],
+    };
+
     runtime.execute_block(block_1).expect("invalid block");
+
+    runtime.execute_block(block_2).expect("invalid block");
 
 	// Simply print the debug format of our runtime state.
 	println!("{:#?}", runtime);
