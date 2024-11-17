@@ -31,7 +31,10 @@ impl<T: Config> Pallet<T> {
 		// `get` the `claim` from the `claims` map.
 		self.claims.get(claim)
 	}
+}
 
+#[macros::call]
+impl<T: Config> Pallet<T> {
 	/// Create a new claim on behalf of the `caller`.
 	/// This function will return an error if someone already has claimed that content.
 	pub fn create_claim(&mut self, caller: T::AccountId, claim: T::Content) -> DispatchResult {
@@ -59,31 +62,6 @@ impl<T: Config> Pallet<T> {
 		self.claims.remove(&claim);
 
 		Ok(())
-	}
-}
-
-// A public enum which describes the calls we want to expose to the dispatcher.
-// We should expect that the caller of each call will be provided by the dispatcher,
-// and not included as a parameter of the call.
-pub enum Call<T: Config> {
-	// Create variants for create and revoke claims.
-	RevokeClaim { claim: T::Content },
-	CreateClaim { claim: T::Content },
-}
-
-/// Implementation of the dispatch logic, mapping from `POECall` to the appropriate underlying
-/// function we want to execute.
-impl<T: Config> crate::support::Dispatch for Pallet<T> {
-
-	type Caller = T::AccountId;
-	type Call = Call<T>;
-
-	fn dispatch(&mut self, caller: Self::Caller, call: Self::Call) -> DispatchResult {
-		match call {
-			// Match on the `call` variant and call the appropriate function.
-			Call::CreateClaim { claim } => self.create_claim(caller, claim),
-			Call::RevokeClaim { claim } => self.revoke_claim(caller, claim),
-		}
 	}
 }
 

@@ -3,8 +3,6 @@ mod proof_of_existence;
 mod system;
 mod support;
 
-use balances::Call;
-
 use crate::support::Dispatch;
 
 // These are the concrete types we will use in our simple state machine.
@@ -136,7 +134,7 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::Balances(Call::Transfer { to: bob.clone(), amount: 20 }),
+                call: RuntimeCall::Balances(balances::Call::transfer { to: bob.clone(), amount: 20 }),
             }
         ],
     };
@@ -147,7 +145,7 @@ fn main() {
         extrinsics: vec![
             support::Extrinsic {
                 caller: alice.clone(),
-                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "Hello, World!".to_string() }),
+                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::create_claim { claim: "Hello, World!".to_string() }),
             },
         ],
     };
